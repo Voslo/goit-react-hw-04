@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { SearchBar } from './SearchBar/SearchBar'
-import { ImageGallery } from './ImageGallery/ImageGallery';
-import { Loader } from './Loader/Loader';
-import { ErrorMessage } from './ErrorMessage/ErrorMessage';
-import { LoadMoreBtn } from './LoadMoreBtn/LoadMoreBtn';
-import toast, { Toaster } from 'react-hot-toast';
-import axios from "axios";
+import { SearchBar } from './components/SearchBar/SearchBar'
+import { ImageGallery } from './components/ImageGallery/ImageGallery';
+import { Loader } from './components/Loader/Loader';
+import { ErrorMessage } from './components/ErrorMessage/ErrorMessage';
+import { LoadMoreBtn } from './components/LoadMoreBtn/LoadMoreBtn';
+import { getData } from './services/api';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   const [images, setImages] = useState([]);
@@ -31,14 +31,7 @@ function App() {
       try {
           setError(false)
           setLoading(true)
-          const response = await axios.get("https://api.unsplash.com/search/photos", {
-              params: {
-                  client_id: "u2w6oniCmyO05TJAcholZgmw5OYIXNNjoAVyg7DrohE",
-                  query: newQuery,
-                  page,
-                  per_page: 12
-            }            
-          });
+          const response = await getData({ newQuery, page });
           setImages( prevData =>[...prevData, ...response.data.results])
       } catch (error) {
           setError(true)
@@ -51,21 +44,9 @@ function App() {
   const handleLoad = () => {
     setPage(page+1)
   }
-
-  const handleSubmit = e => {
-    e.preventDefault();
-    
-    if (e.target.elements.query.value.trim() === "") {
-      toast.error('Empty string!')
-      return
-    }
-      searchImages(e.target.elements.query.value)
-      e.target.reset()
-    }
   return (
     <div className='container'>
-      <SearchBar handleSubmit={handleSubmit} />
-
+      <SearchBar getImages={searchImages} />
       {error && <ErrorMessage/>}
       {loading && <Loader/>}
       {images.length > 0 && <ImageGallery items={images} />}
